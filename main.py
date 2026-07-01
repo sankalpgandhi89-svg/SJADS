@@ -1,7 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import text
-
+from fastapi import Depends
+from app.auth import get_current_user
 from app.database.database import engine
 from app.auth import verify_password
 from app.core.security import create_access_token
@@ -40,7 +41,12 @@ def db_test():
             "error": str(e)
         }
 
-
+@app.get("/me")
+def me(user=Depends(get_current_user)):
+    return {
+        "message": "Authenticated User",
+        "user": user
+    }
 @app.post("/login")
 def login(data: LoginRequest):
 
