@@ -1,8 +1,10 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import text
+
 from app.database.database import engine
 from app.auth import verify_password
+from app.core.security import create_access_token
 
 app = FastAPI(
     title="Shanti Jawa AI Dealership System",
@@ -29,7 +31,9 @@ def db_test():
     try:
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
-        return {"database": "Connected Successfully"}
+        return {
+            "database": "Connected Successfully"
+        }
     except Exception as e:
         return {
             "database": "Connection Failed",
@@ -65,8 +69,16 @@ def login(data: LoginRequest):
             detail="Invalid Username or Password"
         )
 
+    token = create_access_token(
+        {
+            "sub": user.username,
+            "role": user.role
+        }
+    )
+
     return {
-        "message": "Login Successful",
+        "access_token": token,
+        "token_type": "bearer",
         "username": user.username,
         "role": user.role
     }
