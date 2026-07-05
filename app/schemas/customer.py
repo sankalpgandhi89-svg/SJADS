@@ -14,3 +14,16 @@ class CustomerCreate(BaseModel):
     aadhaar: Optional[str] = None
     pan: Optional[str] = None
     date_of_birth: Optional[date] = None
+
+
+class CustomerUpdate(BaseModel):
+    full_name: Optional[str] = None
+    mobile: Optional[str] = None
+    email: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    pincode: Optional[str] = None
+    aadhaar: Optional[str] = None
+    pan: Optional[str] = None
+    date_of_birth: Optional[date] = None
