@@ -7,12 +7,14 @@ from app.database.database import engine
 from app.auth import verify_password
 from app.core.security import create_access_token
 from app.api.customer import router as customer_router
+from app.api.inventory import router as inventory_router
 
 app = FastAPI(
     title="Shanti Jawa AI Dealership System",
     version="1.0.0"
 )
 app.include_router(customer_router)
+app.include_router(inventory_router)
 
 class LoginRequest(BaseModel):
     username: str
