@@ -9,7 +9,6 @@ router = APIRouter(
     tags=["Customers"]
 )
 
-
 # =========================
 # Get All Customers
 # =========================
@@ -73,7 +72,9 @@ def get_customer(customer_id: int):
     with engine.connect() as conn:
         customer = conn.execute(
             query,
-            {"customer_id": customer_id}
+            {
+                "customer_id": customer_id
+            }
         ).mappings().first()
 
     if customer is None:
@@ -83,29 +84,6 @@ def get_customer(customer_id: int):
         )
 
     return customer
-@router.get("/")
-def get_customers():
-
-    query = text("""
-        SELECT *
-        FROM customers
-        WHERE is_active = 1
-        ORDER BY customer_id DESC
-    """)
-
-    with engine.connect() as conn:
-
-        db = conn.execute(
-            text("SELECT DATABASE()")
-        ).scalar()
-
-        print("Connected Database:", db)
-
-        customers = conn.execute(query).mappings().all()
-
-        print("Customers:", customers)
-
-    return customers
 
 
 # =========================
@@ -225,7 +203,9 @@ def delete_customer(customer_id: int):
 
         result = conn.execute(
             query,
-            {"customer_id": customer_id}
+            {
+                "customer_id": customer_id
+            }
         )
 
         if result.rowcount == 0:
