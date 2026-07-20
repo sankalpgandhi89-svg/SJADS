@@ -16,7 +16,15 @@ router = APIRouter(
 def get_sales():
 
     query = text("""
-        SELECT *
+        SELECT
+            sale_id,
+            invoice_no,
+            customer_id,
+            bike_id,
+            quantity,
+            selling_price,
+            payment_mode,
+            sale_date
         FROM sales
         WHERE is_active = 1
         ORDER BY sale_id DESC
@@ -26,6 +34,8 @@ def get_sales():
         sales = conn.execute(query).mappings().all()
 
     return sales
+
+
 # =========================
 # Get Sale By ID
 # =========================
@@ -33,7 +43,15 @@ def get_sales():
 def get_sale(sale_id: int):
 
     query = text("""
-        SELECT *
+        SELECT
+            sale_id,
+            invoice_no,
+            customer_id,
+            bike_id,
+            quantity,
+            selling_price,
+            payment_mode,
+            sale_date
         FROM sales
         WHERE sale_id = :sale_id
         AND is_active = 1
@@ -55,8 +73,6 @@ def get_sale(sale_id: int):
         )
 
     return sale
-
-
 # =========================
 # Add Sale
 # =========================
@@ -84,6 +100,19 @@ def add_sale(sale: SaleCreate):
             status_code=404,
             detail="Bike Not Found"
         )
+
+    # =========================
+    # Generate Invoice Number
+    # =========================
+    invoice_query = text("""
+        SELECT COUNT(*) + 1
+        FROM sales
+    """)
+
+    with engine.connect() as conn:
+        invoice_count = conn.execute(invoice_query).scalar()
+
+    invoice_no = f"INV-{sale.sale_date.year}{invoice_count:04d}"
 
     # =========================
     # Check Customer
@@ -122,6 +151,7 @@ def add_sale(sale: SaleCreate):
     insert_query = text("""
         INSERT INTO sales
         (
+            invoice_no,
             customer_id,
             bike_id,
             quantity,
@@ -131,6 +161,7 @@ def add_sale(sale: SaleCreate):
         )
         VALUES
         (
+            :invoice_no,
             :customer_id,
             :bike_id,
             :quantity,
@@ -151,13 +182,18 @@ def add_sale(sale: SaleCreate):
 
     try:
 
+        data = sale.model_dump()
+        data["invoice_no"] = invoice_no
+
         with engine.begin() as conn:
 
+            # Insert Sale
             conn.execute(
                 insert_query,
-                sale.model_dump()
+                data
             )
 
+            # Update Stock
             conn.execute(
                 stock_query,
                 {
@@ -167,7 +203,8 @@ def add_sale(sale: SaleCreate):
             )
 
         return {
-            "message": "Sale Added Successfully"
+            "message": "Sale Added Successfully",
+            "invoice_no": invoice_no
         }
 
     except Exception as e:
@@ -176,83 +213,3 @@ def add_sale(sale: SaleCreate):
             status_code=400,
             detail=str(e)
         )
- # =========================
-# Update Sale
-# =========================
-@router.put("/{sale_id}")
-def update_sale(sale_id: int, sale: SaleUpdate):
-
-    query = text("""
-        UPDATE sales
-        SET
-            customer_id = :customer_id,
-            bike_id = :bike_id,
-            quantity = :quantity,
-            selling_price = :selling_price,
-            payment_mode = :payment_mode,
-            sale_date = :sale_date
-        WHERE sale_id = :sale_id
-        AND is_active = 1
-    """)
-
-    data = sale.model_dump()
-    data["sale_id"] = sale_id
-
-    try:
-        with engine.begin() as conn:
-
-            result = conn.execute(query, data)
-
-            if result.rowcount == 0:
-                raise HTTPException(
-                    status_code=404,
-                    detail="Sale Not Found"
-                )
-
-        return {
-            "message": "Sale Updated Successfully"
-        }
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=400,
-            detail=str(e)
-        )   
-# =========================
-# Delete Sale (Soft Delete)
-# =========================
-@router.delete("/{sale_id}")
-def delete_sale(sale_id: int):
-
-    query = text("""
-        UPDATE sales
-        SET is_active = 0
-        WHERE sale_id = :sale_id
-        AND is_active = 1
-    """)
-
-    try:
-        with engine.begin() as conn:
-
-            result = conn.execute(
-                query,
-                {
-                    "sale_id": sale_id
-                }
-            )
-
-            if result.rowcount == 0:
-                raise HTTPException(
-                    status_code=404,
-                    detail="Sale Not Found"
-                )
-
-        return {
-            "message": "Sale Deleted Successfully"
-        }
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=400,
-            detail=str(e)
-        )    
