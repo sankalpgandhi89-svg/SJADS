@@ -126,6 +126,31 @@ def top_bikes():
     """)
 
     with engine.connect() as conn:
+        report = conn.execute(query).mappings().all()
+
+    return report
+# =========================
+# Top Selling Bikes
+# =========================
+@router.get("/top-bikes")
+def top_bikes():
+
+    query = text("""
+        SELECT
+            b.bike_id,
+            b.model,
+            SUM(s.quantity) AS total_sold
+        FROM sales s
+        JOIN bikes b
+            ON s.bike_id = b.bike_id
+        WHERE s.is_active = 1
+        GROUP BY
+            b.bike_id,
+            b.model
+        ORDER BY total_sold DESC
+    """)
+
+    with engine.connect() as conn:
 
         report = conn.execute(
             query
