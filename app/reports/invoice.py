@@ -49,8 +49,6 @@ def generate_invoice(sale_id: int):
     if sale is None:
         raise Exception("Sale Not Found")
 
-    print(sale)
-
     # ==========================
     # Generate PDF
     # ==========================
@@ -58,23 +56,76 @@ def generate_invoice(sale_id: int):
 
     c.setTitle("SJADS Invoice")
 
-    c.setFont("Helvetica-Bold", 18)
-    c.drawString(180, 800, "SHANTI JAWA")
+    # ==========================
+    # Header
+    # ==========================
+    c.setFont("Helvetica-Bold", 22)
+    c.drawCentredString(300, 800, "SHANTI JAWA")
+
+    c.setFont("Helvetica", 11)
+    c.drawCentredString(300, 782, "Authorized Jawa & Yezdi Dealership")
+    c.drawCentredString(300, 766, "Near Bus Stand, Morena (M.P.)")
+    c.drawCentredString(300, 750, "Phone : +91-9876543210")
+    c.drawCentredString(300, 734, "Email : info@shantijawa.com")
+
+    c.line(40, 720, 555, 720)
+
+    c.setFont("Helvetica-Bold", 16)
+    c.drawCentredString(300, 700, "TAX INVOICE")
+
+    # ==========================
+# Invoice Details Box
+# ==========================
+
+    c.rect(40, 520, 520, 150)
 
     c.setFont("Helvetica", 12)
 
-    c.drawString(50, 760, f"Invoice No : {sale['invoice_no']}")
-    c.drawString(50, 740, f"Customer   : {sale['full_name']}")
-    c.drawString(50, 720, f"Bike       : {sale['model']}")
-    c.drawString(50, 700, f"Quantity   : {sale['quantity']}")
-    c.drawString(50, 680, f"Amount     : Rs. {sale['selling_price']}")
-    c.drawString(50, 660, f"Payment    : {sale['payment_mode']}")
-    c.drawString(50, 640, f"Date       : {sale['sale_date']}")
+    c.drawString(60, 645, f"Invoice No : {sale['invoice_no']}")
+    c.drawString(320, 645, f"Date : {sale['sale_date']}")
 
-    c.line(50, 620, 550, 620)
+    c.drawString(60, 620, f"Customer : {sale['full_name']}")
+    c.drawString(320, 620, f"Payment : {sale['payment_mode']}")
 
-    c.drawString(50, 600, "Thank You For Visiting Shanti Jawa")
+# ==========================
+# Product Table
+# ==========================
 
-    c.save()
+    c.line(40, 500, 560, 500)
 
-    return pdf_path
+    c.setFont("Helvetica-Bold", 12)
+
+    c.drawString(60, 485, "Bike Model")
+    c.drawString(280, 485, "Qty")
+    c.drawString(360, 485, "Price")
+    c.drawString(470, 485, "Total")
+
+    c.line(40, 475, 560, 475)
+
+    c.setFont("Helvetica", 12)
+
+    c.drawString(60, 455, sale["model"])
+    c.drawString(290, 455, str(sale["quantity"]))
+    c.drawString(360, 455, str(sale["selling_price"]))
+    c.drawString(
+    470,
+    455,
+    str(sale["selling_price"] * sale["quantity"])
+)
+
+    c.line(40, 440, 560, 440)
+
+
+    # ==========================
+# Footer
+# ==========================
+
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(60, 390, "Authorized Signature")
+
+    c.line(60, 385, 220, 385)
+
+    c.drawRightString(550, 390, "Thank You For Visiting Shanti Jawa")
+
+    c.setFont("Helvetica", 10)
+    c.drawRightString(550, 372, "Ride Safe. Ride Jawa.")
